@@ -4,7 +4,6 @@ import io.reactivex.functions.*;
 import io.reactivex.schedulers.Schedulers;
 
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 public class Test {
@@ -138,10 +137,15 @@ public class Test {
 //                .subscribe(it -> System.out.println(it));
 
 //        Observable.range(1, 30)
-//                .flatMap(new Function<Integer, ObservableSource<?>>() {
+//                .concatMap(new Function<Integer, ObservableSource<?>>() {
 //                    @Override
 //                    public ObservableSource<?> apply(Integer integer) throws Exception {
-//                        return Observable.just(integer * 10);
+//                        return Observable.just(integer).doOnNext(new Consumer<Integer>() {
+//                            @Override
+//                            public void accept(Integer integer) throws Exception {
+//                                System.out.println("accept: " + Thread.currentThread().getId() + "-->" + integer);
+//                            }
+//                        }).subscribeOn(Schedulers.newThread());
 //                    }
 //                }).
 //                subscribeOn(Schedulers.io())
@@ -234,12 +238,98 @@ public class Test {
         Observable<Long> o1 = Observable.intervalRange(1, 10, 0, 1000, TimeUnit.MILLISECONDS);
         Observable<Long> o2 = Observable.intervalRange(11, 10, 0, 1000, TimeUnit.MILLISECONDS);
 
-        Observable.combineLatest(o1, o2, new BiFunction<Long, Long, String>() {
+        Observable.merge(o1, o2, new Observable<Long>() {
             @Override
-            public String apply(Long aLong, Long aLong2) throws Exception {
-                return aLong + "......" + aLong2;
+            protected void subscribeActual(Observer<? super Long> observer) {
+
             }
         }).subscribe(it -> System.out.println(it));
+//        o1.doOnNext(it -> System.out.println(it)).contains(3)
+//
+//                .subscribe(new BiConsumer<Boolean, Throwable>() {
+//                    @Override
+//                    public void accept(Boolean aBoolean, Throwable throwable) throws Exception {
+//                        System.out.println(aBoolean);
+////                        throwable.printStackTrace();
+//                    }
+//                });
+
+//        Observable.error(new Throwable("hehe"))
+//                .doOnError(throwable -> System.out.println(throwable.getMessage()))
+//                .onErrorResumeNext(new Function<Throwable, ObservableSource<?>>() {
+//                    @Override
+//                    public ObservableSource<?> apply(Throwable throwable) throws Exception {
+//                        return Observable.just(10);
+//                    }
+//                }).subscribe(it -> System.out.println(it));
+
+//        Observable.create(e -> {
+//            e.onNext(1);
+//            e.onNext(2);
+//            e.onError(new Throwable("hehe"));
+//        })
+//                .retry(2)
+//                .subscribe(new Observer<Object>() {
+//                    @Override
+//                    public void onSubscribe(Disposable disposable) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onNext(Object o) {
+//                        System.out.println(o);
+//                    }
+//
+//                    @Override
+//                    public void onError(Throwable throwable) {
+//                        System.out.println(throwable.getMessage());
+//                    }
+//
+//                    @Override
+//                    public void onComplete() {
+//
+//                    }
+//                });
+
+//        Observable.just(1, "2", 3)
+//                .cast(String.class)
+//                .subscribe(it -> System.out.println(it));
+//        o1.join(o2, new Function<Long, ObservableSource<String>>() {
+//            @Override
+//            public ObservableSource<String> apply(Long aLong) throws Exception {
+//
+//                return Observable.just("f1:　" + aLong + "");
+//            }
+//        }, new Function<Long, ObservableSource<String>>() {
+//            @Override
+//            public ObservableSource<String> apply(Long aLong) throws Exception {
+//                return Observable.just("f2:　" + aLong + "");
+//            }
+//        }, new BiFunction<Long, Long, String>() {
+//            @Override
+//            public String apply(Long aLong, Long aLong2) throws Exception {
+//                return "f3: " + aLong + ", " + aLong2;
+//            }
+//        }).subscribe(s -> System.out.println(s));
+
+//        Observable.combineLatest(o1, o2, new BiFunction<Long, Long, String>() {
+//            @Override
+//            public String apply(Long aLong, Long aLong2) throws Exception {
+//                return aLong + "......" + aLong2;
+//            }
+//        }).subscribe(it -> System.out.println(it));
+
+//        o2.withLatestFrom(o1.take(1), new BiFunction<Long, Long, String>() {
+//                    @Override
+//                    public String apply(Long aLong, Long aLong2) throws Exception {
+//                        return aLong + ", " + aLong2;
+//                    }
+//                }).subscribe(it -> System.out.println(it));
+
+//        o1.take(3)
+//                .doOnNext(aLong -> System.out.println("doOnNext: " + aLong))
+//                .switchMap(aLong -> Observable.just(aLong).subscribeOn(Schedulers.newThread()))
+//                .subscribe(aLong -> System.out.println("sub: " + aLong));
 
         try {
             Thread.sleep(15000L);
