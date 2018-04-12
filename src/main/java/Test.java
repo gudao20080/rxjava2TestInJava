@@ -1,41 +1,49 @@
+import com.sun.jndi.toolkit.url.Uri;
 import io.reactivex.*;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.concurrent.Callable;
+import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 public class Test {
-    static int i = 0;
-
     public static void main(String[] args) {
 
-//        Flowable.range(1, 10)
-//                .observeOn(Schedulers.computation())
-//                .map(v -> v * v)
-//                .blockingSubscribe(System.out::println);
+        Observable observableA = Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                throw new Exception("出错了");
+            }
+        });
 
-        Flowable.range(1, 10)
-                .flatMap(new Function<Integer, Publisher<?>>() {
-                    @Override
-                    public Publisher<?> apply(Integer integer) throws Exception {
+        Observable observableB = Observable.just(2);
+        Observable observableC = Observable.just(3);
+        Observable.mergeDelayError(observableA, observableB, observableC).subscribe(new Observer() {
+            @Override
+            public void onSubscribe(Disposable d) { }
 
-                        return Flowable.just(integer).map(w -> w * w);
-                    }
-                }).subscribe(System.out::println);
+            @Override
+            public void onNext(Object o) {
+                System.out.println(o);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                System.out.println(e.getMessage());
+            }
+
+            @Override
+            public void onComplete() { }
+        });
+
+        String url = "BYGuessDev://m.8win.com/cms/focus";
+
         try {
             Thread.sleep(60 * 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
-
 }
-
-
