@@ -1,44 +1,43 @@
-import com.sun.jndi.toolkit.url.Uri;
-import io.reactivex.*;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.functions.Predicate;
+import kotlin.text.StringsKt;
 
-import java.net.URI;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class Test {
     public static void main(String[] args) {
 
-        Observable observableA = Observable.create(new ObservableOnSubscribe<Integer>() {
-            @Override
-            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
-                throw new Exception("出错了");
-            }
-        });
+        Observable.range(1, 5)
+                .doOnNext(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        if (integer == 4) {
+                            throw new Exception("dddd");
+                        }
+                    }
+                })
+                .retry(1)
+                .subscribe(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        System.out.println(integer);
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        System.out.println(throwable.getMessage());
+                    }
+                });
 
-        Observable observableB = Observable.just(2);
-        Observable observableC = Observable.just(3);
-        Observable.mergeDelayError(observableA, observableB, observableC).subscribe(new Observer() {
-            @Override
-            public void onSubscribe(Disposable d) { }
-
-            @Override
-            public void onNext(Object o) {
-                System.out.println(o);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                System.out.println(e.getMessage());
-            }
-
-            @Override
-            public void onComplete() { }
-        });
-
-        String url = "BYGuessDev://m.8win.com/cms/focus";
 
         try {
             Thread.sleep(60 * 1000);
